@@ -4,11 +4,8 @@ import io
 
 st.set_page_config(page_title="Excel Filter & Column Selector", layout="wide")
 
-st.title("📊 Excel Data Filter & Selector")
-st.write("Upload an Excel file, filter rows by text, select columns, and download the result as an auto-fitted Excel file.")
-
 # 1. File Uploader
-uploaded_file = st.file_uploader("Choose an Excel file", type=["xlsx", "xls"])
+uploaded_file = st.file_uploader("Escolha o romaneio", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
     try:
@@ -19,25 +16,25 @@ if uploaded_file is not None:
 
         df = load_data(uploaded_file)
         
-        st.success("File uploaded successfully!")
+        st.success("Arquivo carregado!")
         
         # --- ROW FILTERING ---
-        st.subheader("🔍 Step 1: Filter Rows")
-        search_term = st.text_input("Enter text to filter rows (leave empty to show all):")
+        st.subheader("🔍 Passo 1: Digite a sua rota")
+        search_term = st.text_input("Digite a sua rota para mostrar apenas a sua rota (deixe vazio para mostrar todas):")
         
         filtered_df = df.copy()
         
         if search_term:
             mask = df.astype(str).apply(lambda row: row.str.contains(search_term, case=False, na=False)).any(axis=1)
             filtered_df = df[mask]
-            st.info(f"Found {len(filtered_df)} rows matching '{search_term}'.")
+            st.info(f"Encontrado {len(filtered_df)} itens na rota '{search_term}'.")
         
         # --- COLUMN SELECTION ---
-        st.subheader("📋 Step 2: Select Columns")
+        st.subheader("📋 Passo 2: Escolha as colunas (pacote, parada, endereço)")
         all_columns = filtered_df.columns.tolist()
         
         selected_columns = st.multiselect(
-            "Select columns to keep:", 
+            "Quais colunas você quer manter:", 
             options=all_columns, 
             default=all_columns
         )
@@ -45,7 +42,7 @@ if uploaded_file is not None:
         if selected_columns:
             final_df = filtered_df[selected_columns]
         else:
-            st.warning("Please select at least one column.")
+            st.warning("Escolha pelo menos uma coluna.")
             final_df = pd.DataFrame()
 
         # --- DATA PREVIEW ---
@@ -54,7 +51,7 @@ if uploaded_file is not None:
             st.dataframe(final_df, use_container_width=True)
             
             # --- DOWNLOAD BUTTON ---
-            st.subheader("💾 Step 3: Download File")
+            st.subheader("💾 Passo 3: Baixar romaneio novo")
             
             # Function to convert dataframe to XLSX with auto-adjusting column widths
             def convert_df_to_xlsx(df_to_convert):
