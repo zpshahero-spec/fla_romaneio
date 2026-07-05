@@ -83,4 +83,4 @@ if uploaded_file is not None:
     except Exception as e:
         st.error(f"An error occurred while processing the file: {e}")
 else:
-    st.info("💡 Awaiting Excel file upload.")
+    st.info("💡 Aguardando arquivo")
