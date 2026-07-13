@@ -18,27 +18,27 @@ if uploaded_file is not None:
         
         st.success("Arquivo carregado!")
         
-       # --- ROW FILTERING ---
+# --- ROW FILTERING ---
         st.subheader("🔍 Step 1: Filter Rows")
         
-        # New: Toggle for exact match
         col1, col2 = st.columns([3, 1])
         with col1:
             search_term = st.text_input("Enter text to filter rows:")
         with col2:
-            exact_match = st.checkbox("Exact match only", help="If checked, 'b-1' will not match 'b-12'")
+            exact_match = st.checkbox("Exact match only", help="If checked, 'b-1' will match 'B-1' or 'b-1', but not 'b-12'")
         
         filtered_df = df.copy()
         
         if search_term:
-            # We convert to string to ensure safe comparison
+            # We convert the entire dataframe to strings
             df_str = df.astype(str)
             
             if exact_match:
-                # Exact Match Logic: compare if cell value equals the search term
-                mask = (df_str == search_term).any(axis=1)
+                # Case-Insensitive Exact Match:
+                # Convert both the cells and the search term to lowercase before checking equality
+                mask = (df_str.apply(lambda col: col.str.lower()) == search_term.lower()).any(axis=1)
             else:
-                # Original Logic: Contains
+                # Original Contains Match (already case-insensitive due to case=False)
                 mask = df_str.apply(lambda row: row.str.contains(search_term, case=False, na=False)).any(axis=1)
             
             filtered_df = df[mask]
