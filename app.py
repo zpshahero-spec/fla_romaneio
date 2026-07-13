@@ -18,33 +18,79 @@ if uploaded_file is not None:
         
         st.success("Arquivo carregado!")
         
-        # --- ROW FILTERING ---
-        st.subheader("🔍 Passo 1: Digite a sua rota")
-        search_term = st.text_input("Digite a sua rota para mostrar apenas a sua rota (deixe vazio para mostrar todas):")
+       # --- ROW FILTERING ---
+        st.subheader("🔍 Step 1: Filter Rows")
+        
+        # New: Toggle for exact match
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            search_term = st.text_input("Enter text to filter rows:")
+        with col2:
+            exact_match = st.checkbox("Exact match only", help="If checked, 'b-1' will not match 'b-12'")
         
         filtered_df = df.copy()
         
         if search_term:
-            mask = df.astype(str).apply(lambda row: row.str.contains(search_term, case=False, na=False)).any(axis=1)
+            # We convert to string to ensure safe comparison
+            df_str = df.astype(str)
+            
+            if exact_match:
+                # Exact Match Logic: compare if cell value equals the search term
+                mask = (df_str == search_term).any(axis=1)
+            else:
+                # Original Logic: Contains
+                mask = df_str.apply(lambda row: row.str.contains(search_term, case=False, na=False)).any(axis=1)
+            
             filtered_df = df[mask]
-            st.info(f"Encontrado {len(filtered_df)} itens na rota '{search_term}'.")
+            st.info(f"Found {len(filtered_df)} rows matching '{search_term}'.")
         
-        # --- COLUMN SELECTION ---
+    # --- COLUMN SELECTION ---
         st.subheader("📋 Step 2: Select Columns to Keep")
         all_columns = filtered_df.columns.tolist()
         
-        # We set default=None so the box starts empty. 
-        # You only select the ~3 columns you actually want to keep.
-        selected_columns = st.multiselect(
-            "Which columns do you want to keep? (Start typing or select below)", 
-            options=all_columns, 
-            default=None  # Starts completely empty!
-        )
+        # 1. Provide handy quick-select buttons
+        col_btn1, col_btn2 = st.columns([1, 5])
+        with col_btn1:
+            clear_all = st.button("Clear All")
+        with col_btn2:
+            select_all = st.button("Select All")
+
+        # Handle the state of the checkboxes based on quick-select buttons
+        if "selected_cols" not in st.session_state or clear_all:
+            st.session_state.selected_cols = []
+        elif select_all:
+            st.session_state.selected_cols = all_columns.copy()
+
+        # 2. Display all columns as visual checkboxes in a responsive grid
+        # This prevents a massive vertical list if your sheet has 20+ columns
+        selected_columns = []
         
+        # Create 4 columns to layout the checkboxes horizontally
+        grid_cols = st.columns(4) 
+        
+        for index, col_name in enumerate(all_columns):
+            # Distribute columns evenly across the 4 layout columns
+            col_target = grid_cols[index % 4]
+            
+            with col_target:
+                # Check if this column should be pre-checked
+                is_checked = col_name in st.session_state.selected_cols
+                
+                if st.checkbox(col_name, value=is_checked, key=f"col_{col_name}_{index}"):
+                    selected_columns.append(col_name)
+                    if col_name not in st.session_state.selected_cols:
+                        st.session_state.selected_cols.append(col_name)
+                else:
+                    if col_name in st.session_state.selected_cols:
+                        st.session_state.selected_cols.remove(col_name)
+
+        # 3. Filter DataFrame based on active checkboxes
         if selected_columns:
-            final_df = filtered_df[selected_columns]
+            # We filter based on the order they appear in the original sheet
+            ordered_selection = [c for c in all_columns if c in selected_columns]
+            final_df = filtered_df[ordered_selection]
         else:
-            st.info("💡 Please select at least one column from the dropdown above to proceed.")
+            st.info("💡 Please check the boxes of the columns you want to keep.")
             final_df = pd.DataFrame()
         # --- DATA PREVIEW ---
         if not final_df.empty:
