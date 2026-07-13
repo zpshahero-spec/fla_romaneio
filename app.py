@@ -30,21 +30,22 @@ if uploaded_file is not None:
             st.info(f"Encontrado {len(filtered_df)} itens na rota '{search_term}'.")
         
         # --- COLUMN SELECTION ---
-        st.subheader("📋 Passo 2: Escolha as colunas (pacote, parada, endereço)")
+        st.subheader("📋 Step 2: Select Columns to Keep")
         all_columns = filtered_df.columns.tolist()
         
+        # We set default=None so the box starts empty. 
+        # You only select the ~3 columns you actually want to keep.
         selected_columns = st.multiselect(
-            "Quais colunas você quer manter:", 
+            "Which columns do you want to keep? (Start typing or select below)", 
             options=all_columns, 
-            default=all_columns
+            default=None  # Starts completely empty!
         )
         
         if selected_columns:
             final_df = filtered_df[selected_columns]
         else:
-            st.warning("Escolha pelo menos uma coluna.")
+            st.info("💡 Please select at least one column from the dropdown above to proceed.")
             final_df = pd.DataFrame()
-
         # --- DATA PREVIEW ---
         if not final_df.empty:
             st.subheader("👀 Preview Processed Data")
